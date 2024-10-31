@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  deepseek-api:
+    build: .
+    ports:
+      - "8560:8560"
+    environment:
+      - DEEPSEEK_MODEL_PATH=${DEEPSEEK_MODEL_PATH}
+    volumes:
+      - ${DEEPSEEK_MODEL_PATH}:${DEEPSEEK_MODEL_PATH}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu] 

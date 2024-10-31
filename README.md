@@ -106,6 +106,17 @@ permitted under these terms.
 
 ## 4. Quick Start
 
+### TOPAZ 
+Install image:
+```
+docker build -t deepseek-vl:latest .
+```
+
+Run container:
+```
+DEEPSEEK_MODEL_PATH=./PATH_TO_MODEL docker compose up
+```
+
 ### Installation
 
 On the basis of `Python >= 3.8` environment, install the necessary dependencies by running the following command:

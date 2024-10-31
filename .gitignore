@@ -413,3 +413,7 @@ Sessionx.vim
 tags
 # Persistent undo
 [._]*.un~
+
+deepseek_vl/checkpoint-*
+
+deepseek_vl_finetuned/
