@@ -16,11 +16,16 @@ setup(
         "uvicorn==0.32.0",
         "python-multipart==0.0.12",
         "pillow==10.4.0",
-        "pydantic==2.9.2"
-
+        "pydantic==2.9.2",
+        "click>=8.0.0"  # Added for CLI support
     ],
     extras_require={
         "gradio": ["gradio>=4.0.0"],
+    },
+    entry_points={
+        'console_scripts': [
+            'deepseek-vl=deepseek_vl.cli:cli',
+        ],
     },
     author="TopazLabs",
     author_email="service@deepseek.com",

@@ -6,7 +6,7 @@ def image_to_base64(image_path):
         return base64.b64encode(image_file.read()).decode('utf-8')
 
 # Convert image to base64
-image_data = image_to_base64("/home/topaz_koch/dev/imageunderstanding/buildings.png")
+image_data = image_to_base64("images/buildings.png")
 
 # Make request
 response = requests.post(
