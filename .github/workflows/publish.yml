@@ -17,6 +17,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -29,12 +31,17 @@ jobs:
           pip install build wheel setuptools twine
           
       - name: Build package
-        run: python -m build
+        run: |
+          python -m build --sdist --wheel
+        
+      - name: List dist contents
+        run: ls -la dist/
         
       - name: Get version
         id: get_version
         run: |
           VERSION=$(python setup.py --version)
+          echo "Package version: $VERSION"
           echo "version=v${VERSION}" >> $GITHUB_OUTPUT
           
       - name: Create Release
@@ -47,4 +54,12 @@ jobs:
           prerelease: false
           files: |
             dist/*.whl
-            dist/*.tar.gz 
+            dist/*.tar.gz
+          fail_on_unmatched_files: true
+          
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error

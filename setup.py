@@ -1,18 +1,28 @@
 from setuptools import setup, find_packages
 
-# Read requirements from requirements.txt
-with open('requirements.txt') as f:
-    required = f.read().splitlines()
-
 setup(
     name="deepseek_vl",
-    version="0.1.0",  # This version will be used in the release tag
+    version="0.1.0",
     packages=find_packages(),
-    install_requires=required,
+    install_requires=[
+        "torch==2.5.1",
+        "transformers==4.46.0",
+        "timm>=1.0.11",
+        "accelerate==1.0.1", 
+        "sentencepiece==0.2.0",
+        "attrdict==2.0.1",
+        "einops==0.8.0",
+        "fastapi==0.115.3",
+        "uvicorn==0.32.0",
+        "python-multipart==0.0.12",
+        "pillow==10.4.0",
+        "pydantic==2.9.2"
+
+    ],
     extras_require={
         "gradio": ["gradio>=4.0.0"],
     },
-    author="TopazLabs", 
+    author="TopazLabs",
     author_email="service@deepseek.com",
     description="DeepSeek Vision-Language Model",
     long_description=open("README.md").read(),
