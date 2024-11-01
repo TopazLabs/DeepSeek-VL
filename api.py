@@ -35,7 +35,9 @@ print("Loading model...")
 vl_chat_processor: VLChatProcessor = VLChatProcessor.from_pretrained(CHECKPOINT_PATH)
 tokenizer = vl_chat_processor.tokenizer
 
-vl_gpt: MultiModalityCausalLM = MultiModalityCausalLM.from_pretrained(CHECKPOINT_PATH, trust_remote_code=True)
+vl_gpt: MultiModalityCausalLM = MultiModalityCausalLM.from_pretrained(
+    CHECKPOINT_PATH, trust_remote_code=True
+)
 vl_gpt = vl_gpt.to(torch.bfloat16).cuda().eval()
 
 # Pydantic models for API
@@ -44,47 +46,45 @@ class ImageRequest(BaseModel):
     prompt: Optional[str] = "<TOPAZ AUTO CLIP CAPTION> Caption this image."
     max_new_tokens: Optional[int] = 128
 
+
 class CaptionResponse(BaseModel):
     caption: str
+
 
 def process_base64_image(image_data: str) -> Image.Image:
     """Process base64 image data into PIL Image"""
     try:
         # Remove data URL prefix if present
-        if image_data.startswith('data:image'):
-            image_data = image_data.split(',')[1]
+        if image_data.startswith("data:image"):
+            image_data = image_data.split(",")[1]
         image_bytes = base64.b64decode(image_data)
-        return Image.open(BytesIO(image_bytes)).convert('RGB')
+        return Image.open(BytesIO(image_bytes)).convert("RGB")
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid image data: {str(e)}")
+
 
 @app.post("/v1/caption", response_model=CaptionResponse)
 async def generate_caption(request: ImageRequest):
     try:
         # Process the image
         image = process_base64_image(request.image)
-        
+
         # Generate caption using temporary file
         with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as tmp_file:
             image.save(tmp_file.name)
-            query = f'<img>{tmp_file.name}</img>{request.prompt}'
+            query = f"<img>{tmp_file.name}</img>{request.prompt}"
             conversation = [
                 {
                     "role": "User",
                     "content": f"<image_placeholder>{request.prompt}",
-                    "images": [tmp_file.name]
+                    "images": [tmp_file.name],
                 },
-                {
-                    "role": "Assistant",
-                    "content": ""
-                }
+                {"role": "Assistant", "content": ""},
             ]
-            
+
             pil_images = load_pil_images(conversation)
             prepare_inputs = vl_chat_processor(
-                conversations=conversation,
-                images=pil_images,
-                force_batchify=True
+                conversations=conversation, images=pil_images, force_batchify=True
             ).to(vl_gpt.device)
 
             # run image encoder to get the image embeddings
@@ -99,14 +99,15 @@ async def generate_caption(request: ImageRequest):
                 eos_token_id=tokenizer.eos_token_id,
                 max_new_tokens=request.max_new_tokens,
                 do_sample=False,
-                use_cache=True
+                use_cache=True,
             )
-            
+
         response = tokenizer.decode(outputs[0].cpu().tolist(), skip_special_tokens=True)
         return CaptionResponse(caption=response)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/health")
 async def health_check():

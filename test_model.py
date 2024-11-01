@@ -14,7 +14,7 @@ tokenizer = vl_chat_processor.tokenizer
 vl_gpt = MultiModalityCausalLM.from_pretrained(model_path, trust_remote_code=True)
 vl_gpt = vl_gpt.to(torch.bfloat16).cuda().eval()
 
-print("Model:", vl_gpt) # Prints the model architecture
+print("Model:", vl_gpt)  # Prints the model architecture
 
 
 # Download image from URL and save to temporary file
@@ -25,25 +25,20 @@ response.raise_for_status()
 with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as tmp_file:
     tmp_file.write(response.content)
     tmp_file.flush()
-    
+
     conversation = [
         {
-            "role": "User", 
+            "role": "User",
             "content": "<image_placeholder><TOPAZ AUTO CLIP CAPTION> Caption this image.",
-            "images": [tmp_file.name]
+            "images": [tmp_file.name],
         },
-        {
-            "role": "Assistant",
-            "content": ""
-        }
+        {"role": "Assistant", "content": ""},
     ]
 
     # load images and prepare for inputs
     pil_images = load_pil_images(conversation)
     prepare_inputs = vl_chat_processor(
-        conversations=conversation,
-        images=pil_images,
-        force_batchify=True
+        conversations=conversation, images=pil_images, force_batchify=True
     ).to(vl_gpt.device)
 
     # run image encoder to get the image embeddings
@@ -58,7 +53,7 @@ with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as tmp_file:
         eos_token_id=tokenizer.eos_token_id,
         max_new_tokens=512,
         do_sample=False,
-        use_cache=True
+        use_cache=True,
     )
 
     answer = tokenizer.decode(outputs[0].cpu().tolist(), skip_special_tokens=True)

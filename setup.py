@@ -8,7 +8,7 @@ setup(
         "torch==2.5.1",
         "transformers==4.46.0",
         "timm>=1.0.11",
-        "accelerate==1.0.1", 
+        "accelerate==1.0.1",
         "sentencepiece==0.2.0",
         "attrdict==2.0.1",
         "einops==0.8.0",
@@ -17,14 +17,14 @@ setup(
         "python-multipart==0.0.12",
         "pillow==10.4.0",
         "pydantic==2.9.2",
-        "click>=8.0.0"  # Added for CLI support
+        "click>=8.0.0",  # Added for CLI support
     ],
     extras_require={
         "gradio": ["gradio>=4.0.0"],
     },
     entry_points={
-        'console_scripts': [
-            'deepseek-vl=deepseek_vl.cli:cli',
+        "console_scripts": [
+            "deepseek-vl=deepseek_vl.cli:cli",
         ],
     },
     author="TopazLabs",

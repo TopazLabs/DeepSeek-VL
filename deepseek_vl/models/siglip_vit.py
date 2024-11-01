@@ -120,7 +120,7 @@ def trunc_normal_(tensor, mean=0.0, std=1.0, a=-2.0, b=2.0):
 def init_weights(self):
     if self.pos_embed is not None:
         trunc_normal_(self.pos_embed, std=self.pos_embed.shape[1] ** -0.5)
-    trunc_normal_(self.latent, std=self.latent_dim**-0.5)
+    trunc_normal_(self.latent, std=self.latent_dim ** -0.5)
 
 
 def init_weights_vit_timm(module: nn.Module, name: str = "") -> None:
@@ -150,7 +150,7 @@ class Attention(nn.Module):
         assert dim % num_heads == 0, "dim should be divisible by num_heads"
         self.num_heads = num_heads
         self.head_dim = dim // num_heads
-        self.scale = self.head_dim**-0.5
+        self.scale = self.head_dim ** -0.5
         # self.fused_attn = use_fused_attn()
         self.fused_attn = True
 
@@ -338,9 +338,9 @@ class VisionTransformer(nn.Module):
 
         self.num_classes = num_classes
         self.global_pool = global_pool
-        self.num_features = self.embed_dim = (
-            embed_dim  # num_features for consistency with other models
-        )
+        self.num_features = (
+            self.embed_dim
+        ) = embed_dim  # num_features for consistency with other models
         self.num_prefix_tokens = 1 if class_token else 0
         self.num_prefix_tokens += reg_tokens
         self.num_reg_tokens = reg_tokens
