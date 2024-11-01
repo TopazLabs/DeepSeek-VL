@@ -107,14 +107,15 @@ permitted under these terms.
 ## 4. Quick Start
 
 ### TOPAZ 
-Install image:
+
+Install pip:
 ```
-docker build -t deepseek-vl:latest .
+pip install --upgrade git+https://github.com/TopazLabs/DeepSeek-VL.git@v0.1.0 
 ```
 
-Run container:
+or install with gradio:
 ```
-DEEPSEEK_MODEL_PATH=./PATH_TO_MODEL docker compose up
+pip install --upgrade git+https://github.com/TopazLabs/DeepSeek-VL.git@v0.1.0[gradio]
 ```
 
 ### Installation
