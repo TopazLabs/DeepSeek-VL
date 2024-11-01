@@ -14,6 +14,7 @@ tokenizer = vl_chat_processor.tokenizer
 vl_gpt = MultiModalityCausalLM.from_pretrained(model_path, trust_remote_code=True)
 vl_gpt = vl_gpt.to(torch.bfloat16).cuda().eval()
 
+
 def generate_caption(image):
     """
     Generate a caption for the uploaded image using the DeepSeek model.
@@ -59,6 +60,7 @@ def generate_caption(image):
 
         answer = tokenizer.decode(outputs[0].cpu().tolist(), skip_special_tokens=True)
         return answer
+
 
 # Create Gradio interface
 with gr.Blocks() as demo:

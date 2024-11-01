@@ -19,7 +19,9 @@ hf_token = os.getenv("HUGGINGFACE_TOKEN")
 if hf_token:
     login(token=hf_token)
 else:
-    logging.warn("HUGGINGFACE_TOKEN not found in environment variables. Some model downloads may fail.")
+    logging.warn(
+        "HUGGINGFACE_TOKEN not found in environment variables. Some model downloads may fail."
+    )
 
 
 from deepseek_vl.models import VLChatProcessor, MultiModalityCausalLM

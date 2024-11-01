@@ -1,5 +1,6 @@
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '4'
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "4"
 import tempfile
 
 import gradio as gr
@@ -13,7 +14,11 @@ from swift.llm import (
 from swift.utils import seed_everything
 
 from swift.llm import (
-    get_model_tokenizer, get_template, inference, ModelType, get_default_template_type
+    get_model_tokenizer,
+    get_template,
+    inference,
+    ModelType,
+    get_default_template_type,
 )
 from swift.tuners import Swift
 
@@ -38,11 +43,12 @@ if not os.path.exists(CHECKPOINT_PATH):
     raise FileNotFoundError(f"Checkpoint path not found: {CHECKPOINT_PATH}")
 
 # Path to example images
-EXAMPLES_DIR = 'examples'  # Ensure this directory exists with images
+EXAMPLES_DIR = "examples"  # Ensure this directory exists with images
 
 # ----------------------------- Model Loading -----------------------------
 
-def load_model(checkpoint_path, device='auto'):
+
+def load_model(checkpoint_path, device="auto"):
     """
     Load the Swift model with the specified LoRA checkpoint.
 
@@ -63,18 +69,23 @@ def load_model(checkpoint_path, device='auto'):
     print(f"Template type: {template_type}")
 
     kwargs = {}
-    kwargs['use_flash_attn'] = True  # Uncomment if you wish to use flash attention
+    kwargs["use_flash_attn"] = True  # Uncomment if you wish to use flash attention
 
     model_id_or_path = None  # Assuming local model loading
 
     # Load model and tokenizer
-    model, tokenizer = get_model_tokenizer(model_type, model_id_or_path=model_id_or_path, model_kwargs={'device_map': 'auto'}, **kwargs)
+    model, tokenizer = get_model_tokenizer(
+        model_type,
+        model_id_or_path=model_id_or_path,
+        model_kwargs={"device_map": "auto"},
+        **kwargs,
+    )
     model = Swift.from_pretrained(model, CHECKPOINT_PATH, inference_mode=True)
     model.generation_config.max_new_tokens = 80
     template = get_template(template_type, tokenizer)
 
     # Modify generation parameters if necessary
-    if hasattr(model, 'generation_config'):
+    if hasattr(model, "generation_config"):
         model.generation_config.max_new_tokens = 128
 
     # Get the template
@@ -86,7 +97,9 @@ def load_model(checkpoint_path, device='auto'):
     print("Model loaded successfully.")
     return model, tokenizer, template
 
+
 # ----------------------------- Inference Function -----------------------------
+
 
 def generate_caption(image, system_prompt, user_prompt, model, tokenizer, template):
     """
@@ -110,7 +123,7 @@ def generate_caption(image, system_prompt, user_prompt, model, tokenizer, templa
         return "Please provide an image."
 
     try:
-        
+
         # tokenizer.to(device)
 
         # Prepare the prompt
@@ -122,7 +135,7 @@ def generate_caption(image, system_prompt, user_prompt, model, tokenizer, templa
 
         with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as tmp_file:
             image.save(tmp_file.name)
-            query = f'<img>{tmp_file.name}</img>{user_prompt}'
+            query = f"<img>{tmp_file.name}</img>{user_prompt}"
             response, history = inference(model, template, query)
 
         return response
@@ -130,7 +143,9 @@ def generate_caption(image, system_prompt, user_prompt, model, tokenizer, templa
     except Exception as e:
         return f"Error during caption generation: {str(e)}"
 
+
 # ----------------------------- Gradio Interface -----------------------------
+
 
 def create_demo(checkpoint_path):
     """
@@ -148,19 +163,19 @@ def create_demo(checkpoint_path):
     # Create Gradio interface using Blocks
     with gr.Blocks() as demo:
         gr.Markdown("# DeepSeek-VL Image Captioning")
-        gr.Markdown("Upload an image and generate a descriptive caption using the DeepSeek-VL model.")
+        gr.Markdown(
+            "Upload an image and generate a descriptive caption using the DeepSeek-VL model."
+        )
 
         with gr.Row():
             with gr.Column(scale=1):
                 image_input = gr.Image(type="pil", label="Upload an Image")
                 system_prompt = gr.Textbox(
-                    value=DEFAULT_SYSTEM_PROMPT,
-                    label="System Prompt",
-                    lines=4
+                    value=DEFAULT_SYSTEM_PROMPT, label="System Prompt", lines=4
                 )
                 user_prompt = gr.Textbox(
                     value="<TOPAZ AUTO CLIP CAPTION> Caption this image.",
-                    label="User Prompt"
+                    label="User Prompt",
                 )
                 submit_btn = gr.Button("Generate Caption")
 
@@ -169,29 +184,44 @@ def create_demo(checkpoint_path):
 
         # Set up the generation
         submit_btn.click(
-            fn=lambda img, sys_p, usr_p: generate_caption(img, sys_p, usr_p, model, tokenizer, template),
+            fn=lambda img, sys_p, usr_p: generate_caption(
+                img, sys_p, usr_p, model, tokenizer, template
+            ),
             inputs=[image_input, system_prompt, user_prompt],
-            outputs=caption_output
+            outputs=caption_output,
         )
 
         # Add examples (ensure example images are accessible)
         if os.path.exists(EXAMPLES_DIR):
             example_images = [
-                [os.path.join(EXAMPLES_DIR, "image1.jpg"), DEFAULT_SYSTEM_PROMPT, "Caption this image:"],
-                [os.path.join(EXAMPLES_DIR, "image2.jpg"), DEFAULT_SYSTEM_PROMPT, "Describe this image in detail:"]
+                [
+                    os.path.join(EXAMPLES_DIR, "image1.jpg"),
+                    DEFAULT_SYSTEM_PROMPT,
+                    "Caption this image:",
+                ],
+                [
+                    os.path.join(EXAMPLES_DIR, "image2.jpg"),
+                    DEFAULT_SYSTEM_PROMPT,
+                    "Describe this image in detail:",
+                ],
             ]
 
             gr.Examples(
                 examples=example_images,
                 inputs=[image_input, system_prompt, user_prompt],
                 outputs=caption_output,
-                fn=lambda img, sys_p, usr_p: generate_caption(img, sys_p, usr_p, model, tokenizer, template),
+                fn=lambda img, sys_p, usr_p: generate_caption(
+                    img, sys_p, usr_p, model, tokenizer, template
+                ),
                 cache_examples=True,
             )
         else:
-            gr.Markdown(f"⚠️ **Warning:** The examples directory `{EXAMPLES_DIR}` does not exist. Please create it and add example images.")
+            gr.Markdown(
+                f"⚠️ **Warning:** The examples directory `{EXAMPLES_DIR}` does not exist. Please create it and add example images."
+            )
 
     return demo
+
 
 # ----------------------------- Main Execution -----------------------------
 
