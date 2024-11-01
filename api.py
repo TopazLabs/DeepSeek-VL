@@ -10,6 +10,18 @@ from io import BytesIO
 from PIL import Image
 import tempfile
 
+import os
+import logging
+from huggingface_hub import login
+
+# Try to login with HF token if available
+hf_token = os.getenv("HUGGINGFACE_TOKEN")
+if hf_token:
+    login(token=hf_token)
+else:
+    logging.warn("HUGGINGFACE_TOKEN not found in environment variables. Some model downloads may fail.")
+
+
 from deepseek_vl.models import VLChatProcessor, MultiModalityCausalLM
 from deepseek_vl.utils.io import load_pil_images
 
@@ -31,7 +43,7 @@ if not CHECKPOINT_PATH:
     raise ValueError("DEEPSEEK_MODEL_PATH environment variable not set")
 
 # Load model and tokenizer globally
-print("Loading model...")
+logging.info("Loading model...")
 vl_chat_processor: VLChatProcessor = VLChatProcessor.from_pretrained(CHECKPOINT_PATH)
 tokenizer = vl_chat_processor.tokenizer
 
