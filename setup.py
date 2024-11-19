@@ -9,7 +9,7 @@ setup(
         "torch",
         "timm>=1.0.11",
         "accelerate==1.0.1",
-        "sentencepiece==0.0.2",
+        "sentencepiece",
         "attrdict==2.0.1",
         "einops==0.8.0",
         "fastapi==0.115.3",
