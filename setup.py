@@ -5,8 +5,8 @@ setup(
     version="0.1.0",
     packages=find_packages(include=['deepseek_vl*']),
     install_requires=[
-        "torch==2.5.1",
         "transformers==4.46.0",
+        "torch",
         "timm>=1.0.11",
         "accelerate==1.0.1",
         "sentencepiece==0.0.2",
