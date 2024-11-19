@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name="deepseek_vl",
     version="0.1.1",
-    packages=find_packages(include=['./*']),
+    packages=find_packages(),
     install_requires=[
         "transformers==4.46.0",
         "torch",
