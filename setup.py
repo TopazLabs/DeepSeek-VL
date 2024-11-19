@@ -3,13 +3,13 @@ from setuptools import setup, find_packages
 setup(
     name="deepseek_vl",
     version="0.1.0",
-    packages=find_packages(),
+    packages=find_packages(include=['deepseek_vl*']),
     install_requires=[
         "torch==2.5.1",
         "transformers==4.46.0",
         "timm>=1.0.11",
         "accelerate==1.0.1",
-        "sentencepiece==0.2.0",
+        "sentencepiece==0.0.2",
         "attrdict==2.0.1",
         "einops==0.8.0",
         "fastapi==0.115.3",
@@ -17,7 +17,7 @@ setup(
         "python-multipart==0.0.12",
         "pillow==10.4.0",
         "pydantic==2.9.2",
-        "click>=8.0.0",  # Added for CLI support
+        "click>=8.0.0",
     ],
     extras_require={
         "gradio": ["gradio>=4.0.0"],
@@ -27,6 +27,10 @@ setup(
             "deepseek-vl=deepseek_vl.cli:cli",
         ],
     },
+    package_data={
+        'deepseek_vl': ['*.py'],
+    },
+    include_package_data=True,
     author="TopazLabs",
     author_email="service@deepseek.com",
     description="DeepSeek Vision-Language Model",
