@@ -4,11 +4,18 @@ import os
 import sys
 from pathlib import Path
 
+__cli_version__ = "0.0.1"
 
 @click.group()
 def cli():
     """DeepSeek Vision-Language Model CLI"""
     pass
+
+@cli.command()
+def version():
+    """Print the version and exit"""
+    click.echo(f"DeepSeek-VL CLI version: {__cli_version__}")
+    sys.exit(0)
 
 
 @cli.command()
@@ -39,4 +46,5 @@ def api(host: str, port: int, model_path: str):
 
 
 if __name__ == "__main__":
+    argparser = click.ArgumentParser()
     cli()
