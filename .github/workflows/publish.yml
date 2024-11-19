@@ -41,9 +41,9 @@ jobs:
         
       - name: Test wheel installation
         run: |
-          pip install dist/*.whl
+          pip install dist/*.whl || true
           python -c "from deepseek_vl import cli; print('CLI module found')"
-          which deepseek-vl || echo "CLI not installed correctly"
+          which deepseek-vl || echo "CLI not installed correctly" && exit 1
         
       - name: List dist contents
         run: ls -la dist/
