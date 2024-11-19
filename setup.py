@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="deepseek_vl",
-    version="0.1.0",
+    version="0.1.1",
     packages=find_packages(include=['./*']),
     install_requires=[
         "transformers==4.46.0",
