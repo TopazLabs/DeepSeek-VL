@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name="deepseek_vl",
     version="0.1.0",
-    packages=find_packages(include=['deepseek_vl*']),
+    packages=find_packages(include=['./*']),
     install_requires=[
         "transformers==4.46.0",
         "torch",
@@ -26,9 +26,6 @@ setup(
         "console_scripts": [
             "deepseek-vl=deepseek_vl.cli:cli",
         ],
-    },
-    package_data={
-        'deepseek_vl': ['*.py'],
     },
     include_package_data=True,
     author="TopazLabs",
