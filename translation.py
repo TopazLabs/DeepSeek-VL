@@ -1,6 +1,5 @@
 import pycld2
 import numpy as np
-from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams
 
 
