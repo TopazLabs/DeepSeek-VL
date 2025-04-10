@@ -1,5 +1,6 @@
 import pycld2
 import numpy as np
+from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams
 
 
@@ -8,7 +9,7 @@ MODEL_PATH = "/add/models/gemma2/"  # Directory containing model.gguf and config
 
 # Load the tokenizer
 tokenizer = "/add/models/gemma2/"
-llm = LLM(model=MODEL_PATH, tokenizer=tokenizer, enforce_eager=True)
+llm = LLM(model=MODEL_PATH, tokenizer=tokenizer, device="cuda:0", enforce_eager=True, gpu_memory_utilization=0.5, max_model_len=512)
 
 def is_english(text: str) -> bool:
     try:
@@ -39,6 +40,8 @@ def detect_language(text: str) -> str:
             return "french"
         elif lang_code == 'pt':
             return "portuguese"
+        elif lang_code == 'it':
+            return "italian"
         else:
             return "other"
     except Exception as e:
@@ -72,11 +75,11 @@ def translate_text(text):
     sampling_params = SamplingParams(
         temperature=0.1,
         top_p=0.9,
-        max_tokens=1024
+        max_tokens=512
     )
     
     # Generate translation
-    result = llm.chat(conversation, sampling_params)
+    result = llm.chat([conversation], sampling_params)
     translation = result[0].outputs[0].text
     
     # Extract the actual translation from the model output
@@ -170,6 +173,32 @@ chinese_translations = [
     "A miniature city built on giant tree branches, steampunk style, twilight lighting"
 ]
 
+# Japanese
+japanese_texts = [
+    "夕日に照らされた富士山、水彩画スタイル",
+    "猫が宇宙服を着て月面を歩いている、シュールな雰囲気",
+    "桜の木の下で茶道を楽しむ侍、伝統的な日本画風",
+    "未来的な東京の街並み、ネオン輝く夜景、サイバーパンク風",
+    "古い日本の温泉旅館、霧に包まれた山々を背景に",
+    "巨大なロボットと小さな少女が手をつないで歩く、アニメ風",
+    "日本庭園の鯉の池、紅葉の季節、禅の雰囲気",
+    "浮世絵風の大波と漁船、ドラマチックな構図",
+    "夜の祭りの提灯と花火、鮮やかな色彩対比",
+    "雪の中の赤い鳥居と参道、ミニマリスト風の構図"
+]
+japanese_translations = [
+    "Mount Fuji illuminated by the sunset, watercolor style",
+    "A cat wearing a spacesuit walking on the moon's surface, surreal atmosphere",
+    "A samurai enjoying a tea ceremony under cherry blossom trees, traditional Japanese painting style",
+    "Futuristic Tokyo cityscape, neon-lit night view, cyberpunk style",
+    "An old Japanese hot spring inn with misty mountains in the background",
+    "A giant robot and a small girl walking hand in hand, anime style",
+    "A koi pond in a Japanese garden, autumn foliage season, zen atmosphere",
+    "Ukiyo-e style great wave and fishing boats, dramatic composition",
+    "Festival lanterns and fireworks at night, vivid color contrast",
+    "Red torii gate and pathway in snow, minimalist composition"
+]
+
 # French
 french_texts = [
     "Un renard roux dans une forêt automnale, style impressionniste",
@@ -196,30 +225,56 @@ french_translations = [
     "A cubist portrait of a woman playing the violin, Picasso style"
 ]
 
-# Russian
-russian_texts = [
-    "Медведь в космическом скафандре, плавающий среди звёзд, неоновые цвета",
-    "Сделай этот пейзаж в стиле Ван Гога, с завихряющимся небом и яркими цветами",
-    "Старинный русский храм с золотыми куполами в зимнем пейзаже, реалистичный стиль",
-    "Балерина, танцующая на сцене Большого театра, драматическое освещение",
-    "Футуристический Санкт-Петербург с летающими кораблями над Невой, научно-фантастический стиль",
-    "Матрёшка в стиле киберпанк, с неоновыми деталями и металлическими элементами",
-    "Волк, воющий на луну в заснеженном лесу, минималистичный стиль, контрастные тени",
-    "Подводный город с куполами и арками, населённый русалками, фэнтезийный стиль",
-    "Космонавт, пьющий чай из самовара на орбитальной станции, сюрреалистический стиль",
-    "Старинная карета, запряжённая тройкой лошадей, мчащаяся по заснеженной дороге, кинематографический стиль"
+# Portuguese
+portuguese_texts = [
+    "Uma praia tropical ao pôr do sol, com palmeiras e águas cristalinas",
+    "Um gato preto com olhos verdes em um telhado sob a luz da lua",
+    "Uma cidade colonial portuguesa com ruas de paralelepípedos e casas coloridas",
+    "Um barco de pesca tradicional navegando no rio Tejo, com a ponte 25 de Abril ao fundo",
+    "Uma floresta amazônica com papagaios coloridos e flores exóticas",
+    "Um café da manhã brasileiro com pão de queijo, frutas tropicais e café",
+    "Um jogador de futebol driblando oponentes em um campo ao entardecer",
+    "Uma dançarina de samba com traje colorido durante o carnaval",
+    "Um antigo farol na costa portuguesa durante uma tempestade",
+    "Uma vista aérea do Cristo Redentor no Rio de Janeiro, estilo fotografia dramática"
 ]
-russian_translations = [
-    "A bear in a space suit, floating among stars, neon colors",
-    "Make this landscape in the style of Van Gogh, with swirling sky and bright colors",
-    "An ancient Russian church with golden domes in a winter landscape, realistic style",
-    "A ballerina dancing on the stage of the Bolshoi Theater, dramatic lighting",
-    "Futuristic Saint Petersburg with flying ships over the Neva River, science fiction style",
-    "A matryoshka doll in cyberpunk style, with neon details and metallic elements",
-    "A wolf howling at the moon in a snowy forest, minimalist style, contrasting shadows",
-    "An underwater city with domes and arches, inhabited by mermaids, fantasy style",
-    "A cosmonaut drinking tea from a samovar on an orbital station, surrealistic style",
-    "An old carriage pulled by three horses, racing along a snow-covered road, cinematic style"
+portuguese_translations = [
+    "A tropical beach at sunset, with palm trees and crystal-clear waters",
+    "A black cat with green eyes on a rooftop under moonlight",
+    "A Portuguese colonial town with cobblestone streets and colorful houses",
+    "A traditional fishing boat sailing on the Tagus River, with the 25 de Abril Bridge in the background",
+    "An Amazon rainforest with colorful parrots and exotic flowers",
+    "A Brazilian breakfast with cheese bread, tropical fruits and coffee",
+    "A soccer player dribbling opponents on a field at dusk",
+    "A samba dancer with colorful costume during carnival",
+    "An old lighthouse on the Portuguese coast during a storm",
+    "An aerial view of Christ the Redeemer in Rio de Janeiro, dramatic photography style"
+]
+
+# Italian
+italian_texts = [
+    "Un gondoliere che naviga attraverso i canali di Venezia al tramonto",
+    "Una pizza napoletana appena sfornata con basilico fresco e mozzarella di bufala",
+    "Un paesaggio toscano con cipressi e vigneti, stile pittura ad olio",
+    "Il Colosseo illuminato di notte, con luna piena, stile fotografia artistica",
+    "Una Ferrari rossa che sfreccia lungo la costa amalfitana, inquadratura cinematografica",
+    "Un caffè espresso e un cannolo su un tavolino di una piazzetta siciliana",
+    "Un gatto che dorme su un davanzale di una vecchia casa italiana con fiori",
+    "Una donna che stende il bucato tra vicoli stretti di un villaggio mediterraneo",
+    "Un pescatore che ripara le reti sul porto di un piccolo villaggio costiero",
+    "Un campo di girasoli in Umbria con antichi uliveti sullo sfondo"
+]
+italian_translations = [
+    "A gondolier navigating through the canals of Venice at sunset",
+    "A freshly baked Neapolitan pizza with fresh basil and buffalo mozzarella",
+    "A Tuscan landscape with cypress trees and vineyards, oil painting style",
+    "The Colosseum illuminated at night, with full moon, artistic photography style",
+    "A red Ferrari speeding along the Amalfi Coast, cinematic framing",
+    "An espresso coffee and a cannolo on a small table in a Sicilian square",
+    "A cat sleeping on a windowsill of an old Italian house with flowers",
+    "A woman hanging laundry between narrow alleys of a Mediterranean village",
+    "A fisherman repairing nets at the harbor of a small coastal village",
+    "A field of sunflowers in Umbria with ancient olive groves in the background"
 ]
 
 # Print examples and output to CSV
@@ -243,6 +298,8 @@ with open('translations_output.csv', mode='w', newline='') as csv_file:
 
     print_examples_and_output_csv("German", german_texts, german_translations, csv_writer)
     print_examples_and_output_csv("Spanish", spanish_texts, spanish_translations, csv_writer)
-    print_examples_and_output_csv("Chinese", chinese_texts, chinese_translations, csv_writer)
+    print_examples_and_output_csv("Japanese", japanese_texts, japanese_translations, csv_writer)
     print_examples_and_output_csv("French", french_texts, french_translations, csv_writer)
-    print_examples_and_output_csv("Russian", russian_texts, russian_translations, csv_writer)
+    print_examples_and_output_csv("Portuguese", portuguese_texts, portuguese_translations, csv_writer)
+    print_examples_and_output_csv("Chinese", chinese_texts, chinese_translations, csv_writer)
+    print_examples_and_output_csv("Italian", italian_texts, italian_translations, csv_writer)

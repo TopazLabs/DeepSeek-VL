@@ -36,6 +36,14 @@ def main():
     )
     
     print(response.json())
+    
+    # 一个微缩的城市建在巨大的树枝上，蒸汽朋克风格，黄昏光线
+    response = requests.post(
+        f"http://localhost:{args.port}/v1/translation",
+        json={"prompt": "一个微缩的城市建在巨大的树枝上，蒸汽朋克风格，黄昏光线"},
+    )
+    
+    print(response.json())
 
 
 if __name__ == "__main__":

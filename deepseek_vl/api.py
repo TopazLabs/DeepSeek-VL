@@ -59,7 +59,7 @@ vl_gpt = vl_gpt.to(torch.bfloat16).cuda().eval()
 # Load translation model
 TRANSLATION_MODEL_PATH = "/app/models/translation_model"
 translation_tokenizer = "/app/models/translation_model"
-translation_llm = LLM(model=TRANSLATION_MODEL_PATH, tokenizer=translation_tokenizer, enforce_eager=True)
+translation_llm = LLM(model=TRANSLATION_MODEL_PATH, gpu_memory_utilization=0.5, tokenizer=translation_tokenizer, enforce_eager=True, device="cuda:0", max_model_len=512)
 
 # Pydantic models for API
 class ImageRequest(BaseModel):
@@ -136,11 +136,11 @@ def translate_text(text):
     sampling_params = SamplingParams(
         temperature=0.1,
         top_p=0.9,
-        max_tokens=1024
+        max_tokens=512
     )
     
     # Generate translation
-    result = translation_llm.chat(conversation, sampling_params)
+    result = translation_llm.chat([conversation], sampling_params)
     translation = result[0].outputs[0].text
     
     # Extract the actual translation from the model output
