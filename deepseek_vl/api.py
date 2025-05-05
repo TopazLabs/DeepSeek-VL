@@ -11,6 +11,9 @@ from PIL import Image
 import tempfile
 import pycld2
 
+import PIL
+PIL.Image.MAX_IMAGE_PIXELS = None
+
 import os
 import logging
 from huggingface_hub import login
@@ -24,10 +27,11 @@ else:
         "HUGGINGFACE_TOKEN not found in environment variables. Some model downloads may fail."
     )
 
-
+from transformers import AutoTokenizer
 from deepseek_vl.models import VLChatProcessor, MultiModalityCausalLM
 from deepseek_vl.utils.io import load_pil_images
-from vllm import LLM, SamplingParams
+# from vllm import LLM, SamplingParams
+# from llama_cpp import Llama
 
 # Initialize FastAPI app
 app = FastAPI(title="DeepSeek-VL API")
@@ -58,8 +62,10 @@ vl_gpt = vl_gpt.to(torch.bfloat16).cuda().eval()
 
 # Load translation model
 TRANSLATION_MODEL_PATH = "/app/models/translation_model"
-translation_tokenizer = "/app/models/translation_model"
-translation_llm = LLM(model=TRANSLATION_MODEL_PATH, gpu_memory_utilization=0.5, tokenizer=translation_tokenizer, enforce_eager=True, device="cuda:0", max_model_len=512)
+from transformers import Gemma3ForCausalLM
+import torch
+translation_tokenizer = AutoTokenizer.from_pretrained(TRANSLATION_MODEL_PATH)
+gemma = Gemma3ForCausalLM.from_pretrained(TRANSLATION_MODEL_PATH).to(torch.bfloat16)
 
 # Pydantic models for API
 class ImageRequest(BaseModel):
@@ -104,6 +110,8 @@ def detect_language(text: str) -> str:
             return "french"
         elif lang_code == 'pt':
             return "portuguese"
+        elif lang_code == 'it':
+            return "italian"
         else:
             return "other"
     except Exception as e:
@@ -112,7 +120,7 @@ def detect_language(text: str) -> str:
         return "other"
 
 
-def translate_text(text):
+def translate_text(text, max_tokens=512, temperature=0.1, top_p=0.9):
     """
     Detects the language of the input text and translates it to English if supported.
     Returns a tuple of (detected_language, translated_text).
@@ -132,16 +140,27 @@ def translate_text(text):
         {"role": "user", "content": f"(Detected Language {language}): {text}"}
     ]
     
-    # Set sampling parameters
-    sampling_params = SamplingParams(
-        temperature=0.1,
-        top_p=0.9,
-        max_tokens=512
+    prompt = translation_tokenizer.apply_chat_template(
+        conversation,
+        tokenize=False,
+        add_generation_prompt=True
     )
     
-    # Generate translation
-    result = translation_llm.chat([conversation], sampling_params)
-    translation = result[0].outputs[0].text
+    inputs = translation_tokenizer.apply_chat_template(
+        conversation,
+        add_generation_prompt=True,
+        tokenize=True,
+        return_dict=True,
+        return_tensors="pt",
+    ).to(gemma.device)
+
+    start_time = time.time()
+    with torch.inference_mode():
+        outputs = gemma.generate(**inputs, max_new_tokens=128)
+    end_time = time.time()
+    logging.info(f"Translation time elapsed: {end_time - start_time} seconds")
+
+    translation = translation_tokenizer.batch_decode(outputs)[0][len(prompt):]
     
     # Extract the actual translation from the model output
     try:
